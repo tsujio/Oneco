@@ -222,7 +222,8 @@ sub render {
 
   my $template = HTML::Template->new(
     filename => $self->{file_path},
-    utf8 => 1
+    utf8 => 1,  # Input file encoding
+    die_on_bad_params => 0,  # Ignore unused params
   );
   $template->param($params);
 
