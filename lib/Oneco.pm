@@ -148,6 +148,8 @@ use 5.010;
 use strict;
 use warnings;
 
+use Encode qw/encode/;
+
 sub new {
   my ($class, $cgi) = @_;
 
@@ -163,10 +165,10 @@ sub render {
   my $params = { @_ };
 
   # Output header
-  print $self->{cgi}->header;
+  print encode('utf-8', $self->{cgi}->header);
 
   # Output body
-  print Oneco::Template->new($view_name)->render($params);
+  print encode('utf-8', Oneco::Template->new($view_name)->render($params));
 
   return;
 }
@@ -175,7 +177,7 @@ sub render {
 sub render_error {
   my ($self, $status) = @_;
 
-  print $self->{cgi}->header(-status => '404 Not Found');
+  print encode('utf-8', $self->{cgi}->header(-status => '404 Not Found'));
   return;
 }
 
