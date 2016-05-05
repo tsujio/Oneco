@@ -5,6 +5,9 @@ use strict;
 use warnings;
 
 use CGI;
+use File::Basename qw/dirname/;
+use File::Spec::Functions qw/catfile/;
+use Cwd qw/abs_path/;
 
 sub new {
   my ($class) = @_;
@@ -16,6 +19,7 @@ sub new {
   bless {
     cgi => $cgi,
     router => Oneco::Router->new,
+    public_dir => catfile(dirname($ENV{SCRIPT_FILENAME}), 'public'),
   }, $class;
 }
 
@@ -32,6 +36,14 @@ sub run {
 
   # Create controller object
   my $controller = Oneco::Controller->new($self->{cgi});
+
+  # Serve static file if found in public dir
+  my $static_file = catfile($self->{public_dir}, $self->{cgi}->path_info);
+  $static_file = abs_path($static_file);
+  if (index($static_file, $self->{public_dir}) == 0 && -f $static_file) {
+    $controller->render_static($static_file);
+    return;
+  }
 
   # Find matched rule
   my $matched = $self->{router}->match(
@@ -185,6 +197,31 @@ sub render_error {
   my ($self, $status) = @_;
 
   print encode('utf-8', $self->{cgi}->header(-status => '404 Not Found'));
+  return;
+}
+
+# Output static file
+sub render_static {
+  my ($self, $file_path) = @_;
+
+  # Output header
+  my $mime;
+  if ($file_path =~ /\.html\z/) { $mime = 'text/html'; }
+  if ($file_path =~ /\.js\z/) { $mime = 'text/js'; }
+  if ($file_path =~ /\.css\z/) { $mime = 'text/css'; }
+  print encode('utf-8', $self->{cgi}->header($mime));
+
+  # Output file content
+  open my $in, '<', $file_path or die "Cannot open $file_path: $!";
+  binmode $in;
+  while (1) {
+    my $len = read $in, my $buf, 1024;  # Read by 1024 bytes of chunks
+    die "Cannot read $file_path: $!" unless defined $len;
+    last if $len == 0;
+    print $buf;
+  }
+  close $in or die "Cannot close $file_path: $!";
+
   return;
 }
 
