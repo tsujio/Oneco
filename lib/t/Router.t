@@ -89,6 +89,10 @@ $router->add('POST', '/foo/:bar', sub { '/foo/:bar' });
 $matched = $router->match('GET', '/');
 is($matched->{callback}(), '/', "Check callback req='GET /'");
 
+# GET ''
+$matched = $router->match('GET', '');
+is($matched->{callback}(), '/', "Check callback req='GET '");
+
 # POST /
 $matched = $router->match('POST', '/');
 ok(!defined $matched, "Check callback req='POST /'");

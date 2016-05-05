@@ -129,8 +129,9 @@ sub match {
   my $rules = $self->{routes}{lc($method)};
   return undef unless defined $rules;
 
-  # Trim '/' at the tail of path
-  $path =~ s!(.)/\z!$1!;
+  # Normalize path
+  $path = '/' unless length $path;  # Set '/' if path is empty
+  $path =~ s!(.)/\z!$1!;  # Trim '/' at the tail of path
 
   # Find matched rule
   for my $rule (@$rules) {
