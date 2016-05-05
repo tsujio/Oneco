@@ -9,7 +9,12 @@ use CGI;
 sub new {
   my ($class) = @_;
 
+  # Create cgi object
+  my $cgi = CGI->new;
+  $cgi->charset('utf-8');
+
   bless {
+    cgi => $cgi,
     router => Oneco::Router->new,
   }, $class;
 }
@@ -25,17 +30,13 @@ sub delete { $_[0]->{router}->add('DELETE', $_[1], $_[2]); return; }
 sub run {
   my ($self) = @_;
 
-  # Create cgi object
-  my $cgi = CGI->new;
-  $cgi->charset('utf-8');
-
   # Create controller object
-  my $controller = Oneco::Controller->new($cgi);
+  my $controller = Oneco::Controller->new($self->{cgi});
 
   # Find matched rule
   my $matched = $self->{router}->match(
-    $cgi->request_method,
-    $cgi->path_info
+    $self->{cgi}->request_method,
+    $self->{cgi}->path_info
   );
 
   # Matched rule not found
